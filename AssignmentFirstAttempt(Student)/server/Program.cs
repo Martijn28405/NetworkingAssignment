@@ -27,7 +27,7 @@ class ServerUDP
     {
 
     byte[] buffer = new byte[1000];
-    byte[] msg = Encoding.ASCII.GetBytes(" From server: Your message delivered\n");
+    byte[] msg = Encoding.ASCII.GetBytes(" Welcome\n");
     string data = null;
     Socket sock;
     int MsgCounter = 0;
@@ -45,7 +45,8 @@ class ServerUDP
         Console.WriteLine("\n Waiting for the next client message..");
         int b = sock.ReceiveFrom(buffer, ref remoteEP);
         data = Encoding.ASCII.GetString(buffer, 0, b);
-        Console.WriteLine("A message received from "+ remoteEP.ToString()+ " " + data);
+        Console.WriteLine("A message received from "+ remoteEP.ToString());
+        Console.WriteLine($"The message wrote: {data}");
         sock.SendTo(msg, msg.Length, SocketFlags.None, remoteEP);
         MsgCounter++;
         }
