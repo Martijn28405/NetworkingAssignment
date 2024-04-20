@@ -1,129 +1,129 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using MessageNS;
 
-
-class Program{
-    static void Main(string[] args){
+// SendTo();
+class Program
+{
+    static void Main(string[] args)
+    {
         ClientUDP cUDP = new ClientUDP();
-        cUDP.Start();
+        cUDP.start();
     }
-
 }
+
 class ClientUDP
 {
-    private UdpClient udpClient;
-    private IPEndPoint serverEndPoint;
+    //TODO: create all needed objects for your sockets
+    byte[] buffer = new byte[1000];
+    Socket sock;
+    static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+    static IPEndPoint ServerEndpoint = new IPEndPoint(ipAddress,32000);
+    static IPEndPoint sender = new IPEndPoint(ipAddress, 32000);
+    static EndPoint remoteEP = (EndPoint)sender;
 
-    public void Start()
+    //TODO: implement all necessary logic to create sockets and handle incoming messages
+    // Do not put all the logic into one method. Create multiple methods to handle different tasks.
+    public void start()
+
     {
-        udpClient = new UdpClient();
-        serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 32000);
-
-        SendHello();
+        SendHelloMessage();
+        
     }
 
-    private void SendHello()
+    //TODO: [Send Hello message]
+    public void SendHelloMessage()
+{
+    sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+    Message msg = new Message();
+    msg.Type = MessageType.Hello;
+    string json = JsonSerializer.Serialize(msg);
+    byte[] data = Encoding.ASCII.GetBytes(json);
+    sock.SendTo(data, ServerEndpoint);
+    Console.WriteLine("Hello message sent to the server");
+    ReceiveMessage();
+}
+    
+    public void ReceiveMessage()
     {
         try
         {
-            Message helloMessage = new Message
-            {
-                Type = MessageType.Hello,
-                Content = "Hello"
-            };
-            byte[] helloBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(helloMessage));
-            udpClient.Send(helloBytes, helloBytes.Length, serverEndPoint);
-            Console.WriteLine($"Sent hello message");
-            ReceiveWelcome();
+            int recv = sock.ReceiveFrom(buffer, ref remoteEP);
+            string message = Encoding.ASCII.GetString(buffer, 0, recv);
+            Console.WriteLine("Message received from the server: " + message);
+            Message msg = JsonSerializer.Deserialize<Message>(message);
+            HandleMessage(msg);
         }
         catch (SocketException ex)
         {
-            Console.WriteLine($"Error sending hello message: {ex.Message}");
-        }
-    }
-
-    private void ReceiveWelcome()
-    {
-        try
-        {
-            byte[] welcomeBytes = udpClient.Receive(ref serverEndPoint);
-            string welcomeMessage = Encoding.ASCII.GetString(welcomeBytes);
-            Message welcome = JsonSerializer.Deserialize<Message>(welcomeMessage);
-            if (welcome.Type == MessageType.Welcome)
+            if (ex.SocketErrorCode == SocketError.ConnectionReset)
             {
-            Console.WriteLine($"Received welcome message: {welcome.Content}");
-            SendRequestData();
+                Console.WriteLine("Connection was forcibly closed by the remote host. Attempting to reconnect...");
+                // Attempt to reconnect or handle the error appropriately
+                
             }
             else
             {
-            Console.WriteLine($"Received unexpected message type: {welcome.Type}");
+                throw;
             }
         }
-        catch (SocketException ex)
-        {
-            Console.WriteLine($"Error receiving welcome message: {ex.Message}");
-        }
-
     }
 
-    private void SendRequestData()
+    public void HandleMessage(Message msg)
     {
-        try
+        switch (msg.Type)
         {
-            Message requestDataMessage = new Message
-            {
-                Type = MessageType.RequestData,
-                Content = "Request data"
-            };
-            byte[] requestDataBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(requestDataMessage));
-            udpClient.Send(requestDataBytes, requestDataBytes.Length, serverEndPoint);
-            Console.WriteLine($"Sent request data message");
+            case MessageType.Welcome:
+                HandleWelcome();
+                break;
+            // case MessageType.Data:
+            //     HandleData();
+            //     break;
+            // case MessageType.Ack:
+            //     HandleAck();
+            //     break;
+            // case MessageType.End:
+            //     HandleEnd();
+            //     break;
+            // case MessageType.Error:
+            //     HandleError();
+            //     break;
         }
-        catch (SocketException ex)
-        {
-            Console.WriteLine($"Error sending request data message: {ex.Message}");
-        }
+    }
+    //TODO: [Receive Welcome]
+    public void HandleWelcome()
+    {
+        Console.WriteLine("Welcome message received");
+        Message msg = new Message();
+        msg.Type = MessageType.RequestData;
+        msg.Content = "Requesting data";
+        byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
+        sock.SendTo(msgBytes, remoteEP);
+        SendRequestData();
     }
 
-    private void ReceiveData()
+    //TODO: [Send RequestData]
+    public void SendRequestData()
     {
-        try
-        {
-            byte[] dataBytes = udpClient.Receive(ref serverEndPoint);
-            string dataMessage = Encoding.ASCII.GetString(dataBytes);
-            Message data = JsonSerializer.Deserialize<Message>(dataMessage);
-            Console.WriteLine($"Received data: {data.Content}");
-        }
-        catch (SocketException ex)
-        {
-            Console.WriteLine($"Error receiving data: {ex.Message}");
-        }
+        Message msg = new Message();
+        msg.Type = MessageType.RequestData;
+        string json = JsonSerializer.Serialize(msg);
+        byte[] data = Encoding.ASCII.GetBytes(json);
+        sock.SendTo(data, ServerEndpoint);
+        Console.WriteLine("RequestData message sent to the server");
+        ReceiveMessage();
     }
 
-    private void SendEnd()
-    {
-        try
-        {
-            Message endMessage = new Message
-            {
-                Type = MessageType.End,
-                Content = "End"
-            };
-            byte[] endBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(endMessage));
-            udpClient.Send(endBytes, endBytes.Length, serverEndPoint);
-        }
-        catch (SocketException ex)
-        {
-            Console.WriteLine($"Error sending end message: {ex.Message}");
-        }
-    }
+    //TODO: [Receive Data]
+
+    //TODO: [Send RequestData]
+
+    //TODO: [Send End]
+
+    //TODO: [Handle Errors]
+
+
 }
-
-    //TODO: Implement error handling logic
-
-    //TODO: Implement error handling logic
