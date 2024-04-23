@@ -22,58 +22,53 @@ class ServerUDP
 {
     //TODO: create all needed objects for your sockets 
     private byte[] buffer = new byte[1000];
-    string data = null;
-    Socket sock;
-    int MsgCounter = 0;
-    static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
-    static IPEndPoint serverIpEndPoint = new IPEndPoint(ipAddress, 32000);
-    static IPEndPoint sender = new IPEndPoint(ipAddress, 32000);
-    static EndPoint remoteEP = (EndPoint)sender;
+    private Socket sock;
+    private static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+    private static IPEndPoint serverIpEndPoint = new IPEndPoint(ipAddress, 32000);
+    private EndPoint remoteEP = new IPEndPoint(ipAddress, 32000);
 
     //TODO: implement all necessary logic to create sockets and handle incoming messages
     // Do not put all the logic into one method. Create multiple methods to handle different tasks.
     public void start()
     {
         ReceiveMessage();
-
     }
 
     //TODO: keep receiving messages from clients
     public void ReceiveMessage()
-{
-    Console.WriteLine("server is listening on port 32000");
+    {
+        Console.WriteLine("server is listening on port 32000");
         sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         sock.Bind(serverIpEndPoint);
-        int recv = sock.ReceiveFrom(buffer, ref remoteEP);
-        string message = Encoding.ASCII.GetString(buffer, 0, recv);
-        Message msg = JsonSerializer.Deserialize<Message>(message);
-        HandleMessage(msg);
+
+        while (true)
+        {
+            Console.WriteLine("server is waiting for a message.....");
+            int recv = sock.ReceiveFrom(buffer, ref remoteEP);
+            string message = Encoding.ASCII.GetString(buffer, 0, recv);
+            Message msg = JsonSerializer.Deserialize<Message>(message);
+            switch (msg.Type)
+            {
+                case MessageType.Hello:
+                    HandleHello();
+                    break;
+                case MessageType.RequestData:
+                    HandleRequestData();
+                    break;
+                // case MessageType.Ack:
+                //     HandleAck();
+                //     break;
+                // case MessageType.End:
+                //     HandleEnd();
+                //     break;
+                // case MessageType.Error:
+                //     HandleError();
+                //     break;
+            }
+        }
     }
 
     // you can call a dedicated method to handle each received type of messages
-    public void HandleMessage(Message msg)
-    {
-        switch (msg.Type)
-        {
-            case MessageType.Hello:
-                HandleHello();
-                break;
-            case MessageType.RequestData:
-                HandleRequestData();
-                break;
-            // case MessageType.Ack:
-            //     HandleAck();
-            //     break;
-            // case MessageType.End:
-            //     HandleEnd();
-            //     break;
-            // case MessageType.Error:
-            //     HandleError();
-            //     break;
-            default:
-                break;
-        }
-    }
     //TODO: [Receive Hello]
     //TODO: [Send Welcome]
     public void HandleHello()
@@ -91,12 +86,16 @@ class ServerUDP
     //TODO: [Receive RequestData]
     public void HandleRequestData()
     {
-        Console.WriteLine("RequestData message received");
-        Message msg = new Message();
-        msg.Type = MessageType.Data;
-        msg.Content = "Sending data";
-        byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
-        sock.SendTo(msgBytes, remoteEP);
+        while (true)
+        {
+
+            Console.WriteLine("RequestData message received");
+            Message msg = new Message();
+            msg.Type = MessageType.Data;
+            msg.Content = "Sending data";
+            byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
+            sock.SendTo(msgBytes, remoteEP);
+        }
     }
 
     //TODO: [Send Data]
