@@ -53,7 +53,7 @@ class ServerUDP
             Console.WriteLine("server is waiting for a message.....");
             int recv = sock.ReceiveFrom(buffer, ref remoteEP);
             string message = Encoding.ASCII.GetString(buffer, 0, recv);
-            Console.WriteLine("Received message: " + message+ "\n");
+            Console.WriteLine("Received message: " + message + "\n");
             Message msg = JsonSerializer.Deserialize<Message>(message);
             switch (msg.Type)
             {
@@ -67,9 +67,9 @@ class ServerUDP
                     Console.WriteLine(msg.Content);
                     HandleAck(msg.Content);
                     break;
-                // case MessageType.Error:
-                //     HandleError();
-                //     break;
+                    // case MessageType.Error:
+                    //     HandleError();
+                    //     break;
             }
         }
     }
@@ -88,9 +88,9 @@ class ServerUDP
         }
         // HandleError();
 
-        
 
-        
+
+
     }
 
     public void SendWelcome()
@@ -102,27 +102,28 @@ class ServerUDP
         Console.WriteLine("Send welcome message\n");
     }
 
-    
 
-    
+
+
     public void SendData(int ChunckToSend = 0)
     {
         string filePath = "hamlet.txt";
         string[] lines = File.ReadAllLines(filePath);
         //get all the lines into a array
-        
-        
+
+
         int chunkSize = 100; // Define the size of each message chunk
 
         int totalChunks = (int)Math.Ceiling((double)lines.Length / chunkSize); // get the amount of chunks depending on chucksize
 
-        if(ChunckToSend <= totalChunks){
-            string MessageID = 000+ChunckToSend.ToString("D3");//append the messageID in numbers of 4: 0001, 0002, 0003 etc.
+        if (ChunckToSend <= totalChunks)
+        {
+            string MessageID = 000 + ChunckToSend.ToString("D3");//append the messageID in numbers of 4: 0001, 0002, 0003 etc.
             int start = ChunckToSend * chunkSize;//get the start of the chunk
             int end = Math.Min(start + chunkSize, lines.Length);//get the end
             List<string> MessageContent = lines.Skip(start).Take(end - start).ToList();//make the array into 1 string
             Console.WriteLine("Message Content:");
-            
+
             Message data = new Message
             {
                 Type = MessageType.Data,
@@ -131,12 +132,14 @@ class ServerUDP
             Console.WriteLine(data.Content);
 
             SendAck(data, MessageID);
-        }else{
+        }
+        else
+        {
             SendEnd();
         }
-        
 
-        
+
+
     }
 
     //TODO: [End sending data to client]
@@ -153,36 +156,36 @@ class ServerUDP
 
     public void HandleAck(string msgID)
     {
-        Console.WriteLine("Ack message received with message ID: "+ msgID);
+        Console.WriteLine("Ack message received with message ID: " + msgID);
         int NextChunk = int.Parse(msgID);
         NextChunk++;
         SendData(NextChunk);
-           
+
     }
 
     public void SendAck(Message msg, string MessageID)
     {
         byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
-        try 
+        try
         {
             sock.SendTo(msgBytes, remoteEP);
             Console.WriteLine("Data message sent ID: " + MessageID);
             Console.WriteLine("Waiting for Acknowledgement...");
             ReceiveMessage();
-        } 
+        }
         catch (Exception ex)
         {
             Console.WriteLine("Error sending data message: " + ex.Message);
             //handleerror
         }
-                
-        
+
+
     }
 
     //TODO: [Send Data]
 
     //TODO: [Implement your slow-start algorithm considering the threshold]
-    
+
 
 
     //TODO: [End sending data to client]
@@ -195,7 +198,7 @@ class ServerUDP
         msg.Type = MessageType.Error;
         byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
         sock.SendTo(msgBytes, remoteEP);
-        
+
     }
 
 

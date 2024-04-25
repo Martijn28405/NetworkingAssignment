@@ -46,7 +46,7 @@ class ClientUDP
         s.SendTo(data, ServerEndpoint);
         Console.WriteLine("Hello message sent to the server");
     }
-    
+
     public void ReceiveMessage()
     {
         while (true)
@@ -62,19 +62,19 @@ class ClientUDP
                     break;
                 case MessageType.Data:
                     HandleData(msg);
-                    
+
                     break;
                 case MessageType.End:
                     HandleEnd();
                     break;
-                // case MessageType.Error:
-                //     HandleError();
-                //     break;
+                    // case MessageType.Error:
+                    //     HandleError();
+                    //     break;
             }
-            
+
         }
-        }
-            
+    }
+
     //TODO: [Receive Welcome]
 
     //TODO: [Send RequestData]
@@ -86,32 +86,37 @@ class ClientUDP
         string json = JsonSerializer.Serialize(msg);
         byte[] data = Encoding.ASCII.GetBytes(json);
         s.SendTo(data, ServerEndpoint);
-        Console.WriteLine("RequestData message sent to the server"); 
+        Console.WriteLine("RequestData message sent to the server");
     }
 
     //TODO: [Receive Data]
     public void HandleData(Message msg)
     {
         Console.WriteLine("Data message received");
-        try{
-            string msgID = msg.Content.Substring(0,4);
+        try
+        {
+            string msgID = msg.Content.Substring(0, 4);
             string msgData = msg.Content.Substring(4);
-            if(msgID == "0000"){
+            if (msgID == "0000")
+            {
                 File.Delete("output.txt");
             }
             File.AppendAllText("output.txt", msgData);
             SendAck(msgID);
-        }catch{
+        }
+        catch
+        {
             Console.WriteLine("Error: message is empty");
             //handleerror
         }
-        
-        
+
+
     }
 
     public void SendAck(string id)
     {
-        Message msg = new Message{
+        Message msg = new Message
+        {
             Type = MessageType.Ack,
             Content = id
         };
@@ -134,10 +139,10 @@ class ClientUDP
     public void HandleError()
     {
         Console.WriteLine("Error message received");
-        
+
         // Perform any necessary error handling here
-    
-        
+
+
     }
 
 
