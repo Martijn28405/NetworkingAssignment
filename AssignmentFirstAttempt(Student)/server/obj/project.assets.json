@@ -8,24 +8,26 @@
     "net6.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Marti\\.nuget\\packages\\": {}
+    "C:\\Users\\Karsten Keemink\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Marti\\Git\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\server\\server.csproj",
+      "projectUniqueName": "C:\\Users\\Karsten Keemink\\Desktop\\HSR_JAAR_2\\ANALYSIS\\NETWORKING\\Assignment\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\server\\server.csproj",
       "projectName": "server",
-      "projectPath": "C:\\Users\\Marti\\Git\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\server\\server.csproj",
-      "packagesPath": "C:\\Users\\Marti\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Marti\\Git\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\server\\obj\\",
+      "projectPath": "C:\\Users\\Karsten Keemink\\Desktop\\HSR_JAAR_2\\ANALYSIS\\NETWORKING\\Assignment\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\server\\server.csproj",
+      "packagesPath": "C:\\Users\\Karsten Keemink\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Karsten Keemink\\Desktop\\HSR_JAAR_2\\ANALYSIS\\NETWORKING\\Assignment\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\server\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Marti\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Karsten Keemink\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net6.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -38,6 +40,11 @@
         "warnAsError": [
           "NU1605"
         ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -54,12 +61,30 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[6.0.27, 6.0.27]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[6.0.27, 6.0.27]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[6.0.27, 6.0.27]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[6.0.27, 6.0.27]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.408\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200\\RuntimeIdentifierGraph.json"
       }
     }
   }

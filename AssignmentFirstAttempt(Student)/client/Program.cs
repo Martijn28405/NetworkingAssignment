@@ -62,6 +62,7 @@ class ClientUDP
                     break;
                 case MessageType.Data:
                     HandleData(msg);
+                    
                     break;
                 case MessageType.End:
                     HandleEnd();
@@ -92,19 +93,30 @@ class ClientUDP
     public void HandleData(Message msg)
     {
         Console.WriteLine("Data message received");
-        string data = msg.Content;
-        File.AppendAllText("output.txt", data);
-        Console.WriteLine("Data saved to output.txt");
+        try{
+            string msgID = msg.Content.Substring(0,4);
+            string msgData = msg.Content.Substring(4);
+            if(msgID == "0000"){
+                File.Delete("output.txt");
+            }
+            File.AppendAllText("output.txt", msgData);
+            SendAck(msgID);
+        }catch{
+            Console.WriteLine("Error: message is empty");
+            //handleerror
+        }
+        
+        
     }
 
-    public void SendAck(int id)
+    public void SendAck(string id)
     {
-        Message msg = new Message();
-        msg.Type = MessageType.Ack;
-        msg.Content = id.ToString();
-        string json = JsonSerializer.Serialize(msg);
-        byte[] data = Encoding.ASCII.GetBytes(json);
-        s.SendTo(data, ServerEndpoint);
+        Message msg = new Message{
+            Type = MessageType.Ack,
+            Content = id
+        };
+        byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
+        s.SendTo(msgBytes, ServerEndpoint);
         Console.WriteLine("Ack message sent to the server");
     }
 

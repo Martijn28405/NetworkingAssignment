@@ -1,5 +1,6 @@
 // NOTE: THIS FILE MUST NOT CHANGE
 
+
 namespace MessageNS
 {
 
