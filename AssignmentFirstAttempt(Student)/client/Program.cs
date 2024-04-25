@@ -95,7 +95,6 @@ class ClientUDP
         string data = msg.Content;
         File.AppendAllText("output.txt", data);
         Console.WriteLine("Data saved to output.txt");
-        SendAck(id: 1);
     }
 
     public void SendAck(int id)

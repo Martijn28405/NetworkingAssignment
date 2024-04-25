@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using MessageNS;
+using Microsoft.VisualBasic;
 
 
 // Do not modify this class
@@ -27,7 +28,7 @@ class ServerUDP
     private static IPEndPoint serverIpEndPoint = new IPEndPoint(ipAddress, 32000);
     private EndPoint remoteEP = new IPEndPoint(ipAddress, 32000);
 
-    private static int threshold = 20;
+    private static int threshold = 0;
     private int congestionWindow = threshold;
     private int duplicateAckCount = 0;
 
@@ -51,18 +52,19 @@ class ServerUDP
             Console.WriteLine("server is waiting for a message.....");
             int recv = sock.ReceiveFrom(buffer, ref remoteEP);
             string message = Encoding.ASCII.GetString(buffer, 0, recv);
+            Console.WriteLine("Received message: " + message);
             Message msg = JsonSerializer.Deserialize<Message>(message);
             switch (msg.Type)
             {
                 case MessageType.Hello:
-                    HandleHello();
+                    HandleHello(msg);
                     break;
                 case MessageType.RequestData:
                     SendData();
                     break;
-                case MessageType.Ack:
-                    HandleAck();
-                    break;
+                // case MessageType.Ack:
+                //     HandleAck();
+                //     break;
                 // case MessageType.Error:
                 //     HandleError();
                 //     break;
@@ -73,14 +75,29 @@ class ServerUDP
     // you can call a dedicated method to handle each received type of messages
     //TODO: [Receive Hello]
     //TODO: [Send Welcome]
-    public void HandleHello()
+    public void HandleHello(Message msg)
     {
         Console.WriteLine("Hello message received");
-        Message msg = new Message();
-        msg.Type = MessageType.Welcome;
-        msg.Content = "Welcome to the server";
-        byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
+
+        if (msg.Content != null)
+        {
+            threshold = int.Parse(msg.Content);
+            SendWelcome();
+        }
+        // HandleError();
+
+        
+
+        
+    }
+
+    public void SendWelcome()
+    {
+        Message welcome_message = new Message();
+        welcome_message.Type = MessageType.Welcome;
+        byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(welcome_message));
         sock.SendTo(msgBytes, remoteEP);
+        Console.WriteLine("Send welcome message");
     }
 
     
@@ -88,34 +105,60 @@ class ServerUDP
     
     public void SendData()
     {
-        ImplementSlowStart();
         string filePath = "hamlet.txt";
         string[] lines = File.ReadAllLines(filePath);
+         // Assign a unique message ID for each message
 
         int chunkSize = 100; // Define the size of each message chunk
         int subChunkSize = 10; // Define the size of each sub-chunk
 
-        for (int i = 0; i < lines.Length; i += chunkSize)
-        {
-            string[] chunkLines = lines.Skip(i).Take(chunkSize).ToArray();
+        int totalChunks = (int)Math.Ceiling((double)lines.Length / chunkSize);
+        int subChunkIndex = 0;
 
-            for (int j = 0; j < chunkLines.Length; j += subChunkSize)
+        for (int chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++)
+        {
+            int startIndex = chunkIndex * chunkSize;
+            int endIndex = Math.Min(startIndex + chunkSize, lines.Length);
+
+            string[] chunkLines = lines[startIndex..endIndex];
+
+            int totalSubChunks = (int)Math.Ceiling((double)chunkLines.Length / subChunkSize);
+
+            for (subChunkIndex = 0; subChunkIndex < totalSubChunks; subChunkIndex++)
             {
-                string[] subChunkLines = chunkLines.Skip(j).Take(subChunkSize).ToArray();
+                int subChunkStartIndex = subChunkIndex * subChunkSize;
+                int subChunkEndIndex = Math.Min(subChunkStartIndex + subChunkSize, chunkLines.Length);
+
+                string[] subChunkLines = chunkLines[subChunkStartIndex..subChunkEndIndex];
                 string subChunkContent = string.Join("\n", subChunkLines);
 
                 Message msg = new Message
                 {
                     Type = MessageType.Data,
-                    Content = subChunkContent
+                    Content = chunkIndex + "" + subChunkContent
                 };
 
                 byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
                 sock.SendTo(msgBytes, remoteEP);
             }
-        }
 
-        SendEnd();
+            // if()
+            // {
+            //     SendEnd();
+            // }
+        }
+    }
+
+    //TODO: [End sending data to client]
+    public void SendEnd()
+    {
+        Console.WriteLine("Send end message");
+        // Perform any necessary cleanup or finalization here
+        // For example, close the socket or release any resources
+        Message msg = new Message();
+        msg.Type = MessageType.End;
+        byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
+        sock.SendTo(msgBytes, remoteEP);
     }
 
     public void HandleAck()
@@ -134,34 +177,10 @@ class ServerUDP
     //TODO: [Send Data]
 
     //TODO: [Implement your slow-start algorithm considering the threshold]
-    public void ImplementSlowStart()
-    {
-        Console.WriteLine("Implementing slow-start algorithm");
-
-        // Perform slow-start algorithm logic here
-        // You can use the congestionWindow and threshold variables
-
-        // Example implementation:
-        if (congestionWindow < threshold)
-        {
-            congestionWindow *= 2;
-        }
-    }
     
 
 
     //TODO: [End sending data to client]
-    public void SendEnd()
-    {
-        Console.WriteLine("Send end message");
-        // Perform any necessary cleanup or finalization here
-        // For example, close the socket or release any resources
-        Message msg = new Message();
-        msg.Type = MessageType.End;
-        byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
-        sock.SendTo(msgBytes, remoteEP);
-        
-    }
 
     //TODO: [Send Error]
     public void SendError()
