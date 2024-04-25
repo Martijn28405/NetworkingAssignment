@@ -1,13 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "5W3TDGcJN+mBK3ZyiwFbJ4ARsYUewkdPFAMBwsg7XEKB6eMsitHhR5FTYqsGGjnJZJhqJhGITpEi+3pqJ2K7vQ==",
+  "dgSpecHash": "fjseN+J0N7zkCPV9WcfL0tI0umDNm30w/uCz5kdKx7AQhTSyxW35dqHCXJVBkUq4Y5Jzyt3uHyvuMhWOhTYT2A==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Karsten Keemink\\Desktop\\HSR_JAAR_2\\ANALYSIS\\NETWORKING\\Assignment\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\client\\client.csproj",
-  "expectedPackageFiles": [
-    "C:\\Users\\Karsten Keemink\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.27\\microsoft.netcore.app.ref.6.0.27.nupkg.sha512",
-    "C:\\Users\\Karsten Keemink\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.27\\microsoft.windowsdesktop.app.ref.6.0.27.nupkg.sha512",
-    "C:\\Users\\Karsten Keemink\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.27\\microsoft.aspnetcore.app.ref.6.0.27.nupkg.sha512",
-    "C:\\Users\\Karsten Keemink\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.27\\microsoft.netcore.app.host.win-x64.6.0.27.nupkg.sha512"
-  ],
+  "projectFilePath": "C:\\Users\\Marti\\Git\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\client\\client.csproj",
+  "expectedPackageFiles": [],
   "logs": []
 }

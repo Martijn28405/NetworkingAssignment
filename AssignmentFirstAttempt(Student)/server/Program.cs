@@ -30,9 +30,7 @@ class ServerUDP
     Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
 
-    private static int threshold = 0;
-    private int congestionWindow = threshold;
-    private int duplicateAckCount = 0;
+    static int threshold = 0;
 
 
     //TODO: implement all necessary logic to create sockets and handle incoming messages
@@ -127,7 +125,7 @@ class ServerUDP
             Message data = new Message
             {
                 Type = MessageType.Data,
-                Content = MessageID + "" + string.Join(Environment.NewLine, MessageContent)
+                Content = MessageID + "" + string.Join("\n", MessageContent)
             };
             Console.WriteLine(data.Content);
 
