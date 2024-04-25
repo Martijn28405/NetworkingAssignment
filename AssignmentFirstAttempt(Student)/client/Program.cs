@@ -53,7 +53,6 @@ class ClientUDP
         {
             int recv = s.ReceiveFrom(buffer, ref remoteEP);
             string message = Encoding.ASCII.GetString(buffer, 0, recv);
-            Console.WriteLine("Message received from the server: " + message);
             Message msg = JsonSerializer.Deserialize<Message>(message);
             switch (msg.Type)
             {
@@ -93,8 +92,8 @@ class ClientUDP
     public void HandleData(Message msg)
     {
         Console.WriteLine("Data message received");
-        string content = msg.Content;
-        File.AppendAllText("output.txt", content + Environment.NewLine);
+        string data = msg.Content;
+        File.AppendAllText("output.txt", data);
         Console.WriteLine("Data saved to output.txt");
         SendAck(id: 1);
     }

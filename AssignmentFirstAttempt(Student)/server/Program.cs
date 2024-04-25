@@ -63,9 +63,6 @@ class ServerUDP
                 case MessageType.Ack:
                     HandleAck();
                     break;
-                // case MessageType.End:
-                //     HandleEnd();
-                //     break;
                 // case MessageType.Error:
                 //     HandleError();
                 //     break;
@@ -88,45 +85,37 @@ class ServerUDP
 
     
 
-    //TODO: [Receive RequestData]
-    //TODO: [Send Data]
+    
     public void SendData()
     {
+        ImplementSlowStart();
         string filePath = "hamlet.txt";
         string[] lines = File.ReadAllLines(filePath);
-    
+
         int chunkSize = 100; // Define the size of each message chunk
         int subChunkSize = 10; // Define the size of each sub-chunk
-        int totalChunks = (int)Math.Ceiling((double)lines.Length / chunkSize); // Calculate the total number of chunks
-    
-        for (int i = 0; i < totalChunks; i++)
+
+        for (int i = 0; i < lines.Length; i += chunkSize)
         {
-            int startIndex = i * chunkSize;
-            int endIndex = Math.Min(startIndex + chunkSize, lines.Length);
-            string[] chunkLines = lines[startIndex..endIndex];
-    
-            int totalSubChunks = (int)Math.Ceiling((double)chunkLines.Length / subChunkSize); // Calculate the total number of sub-chunks
-    
-            for (int j = 0; j < totalSubChunks; j++)
+            string[] chunkLines = lines.Skip(i).Take(chunkSize).ToArray();
+
+            for (int j = 0; j < chunkLines.Length; j += subChunkSize)
             {
-                int subChunkStartIndex = j * subChunkSize;
-                int subChunkEndIndex = Math.Min(subChunkStartIndex + subChunkSize, chunkLines.Length);
-                string subChunkContent = string.Join("\n", chunkLines[subChunkStartIndex..subChunkEndIndex]);
-    
+                string[] subChunkLines = chunkLines.Skip(j).Take(subChunkSize).ToArray();
+                string subChunkContent = string.Join("\n", subChunkLines);
+
                 Message msg = new Message
                 {
                     Type = MessageType.Data,
                     Content = subChunkContent
                 };
-    
+
                 byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(msg));
                 sock.SendTo(msgBytes, remoteEP);
             }
-            if (i == totalChunks - 1)
-            {
-                SendEnd();
-            }
         }
+
+        SendEnd();
     }
 
     public void HandleAck()
@@ -144,9 +133,21 @@ class ServerUDP
 
     //TODO: [Send Data]
 
-    //TODO: [Send Data]
-
     //TODO: [Implement your slow-start algorithm considering the threshold]
+    public void ImplementSlowStart()
+    {
+        Console.WriteLine("Implementing slow-start algorithm");
+
+        // Perform slow-start algorithm logic here
+        // You can use the congestionWindow and threshold variables
+
+        // Example implementation:
+        if (congestionWindow < threshold)
+        {
+            congestionWindow *= 2;
+        }
+    }
+    
 
 
     //TODO: [End sending data to client]
