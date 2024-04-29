@@ -337,7 +337,7 @@ class ServerUDP
         // {
         //     sock.Close();
         // }
-        // start();        
+        // start();
     }
 
     //Send the end message and reset all the timeouts, also restart the connection on RetrieveConnection
