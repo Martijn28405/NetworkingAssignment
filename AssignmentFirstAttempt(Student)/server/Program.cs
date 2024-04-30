@@ -1,13 +1,10 @@
-﻿using System;
-using System.Data.SqlTypes;
-using System.Net;
+﻿using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using MessageNS;
-using Microsoft.VisualBasic;
+
 
 
 // Do not modify this class
@@ -21,11 +18,11 @@ class Program
 }
 
 class ServerUDP
-{
+{ 
     //TODO: implement all necessary logic to create sockets and handle incoming messages
     //TODO: create all needed objects for your sockets ✓
 
-    private byte[] buffer = new byte[66000];
+    private byte[] buffer = new byte[1024];
     private static IPAddress ipAddress = NetworkInterface.GetAllNetworkInterfaces()
         .SelectMany(nic => nic.GetIPProperties().UnicastAddresses)
         .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ua.Address))
@@ -34,7 +31,7 @@ class ServerUDP
     private static IPEndPoint serverIpEndPoint = new IPEndPoint(ipAddress, 32000);
     private EndPoint remoteEP = new IPEndPoint(ipAddress, 32000);
     private Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
+    
     // Is a client connected?
     private bool got_Connection = false;
 
@@ -61,11 +58,11 @@ class ServerUDP
         RetrieveConnection();
     }
 
-
     //TODO: keep receiving messages from clients
     // you can call a dedicated method to handle each received type of messages
     public void RetrieveConnection()
     {
+        Console.WriteLine();
         Console.WriteLine($"server is waiting for connection on port: {serverIpEndPoint} ...");
 
         while (!got_Connection)
@@ -88,11 +85,8 @@ class ServerUDP
             }
             catch (Exception ex)
             {
-                // Log error
-                Console.WriteLine("Error: " + ex.Message);
-                // Go back to listening for a hello message
                 got_Connection = false;
-                continue;
+                HandleError(ex);
             }
         }
         // Set a timeout for 5 seconds
@@ -125,6 +119,9 @@ class ServerUDP
                             Console.WriteLine("Received Hello message");
                             connectionRequests.Enqueue(decryptedRequestMessage); // Store the message in the queue to connect after ending this connection
                             break;
+                        case MessageType.Error:
+                            HandleError(new Exception(decryptedRequestMessage.Content), false);
+                            break;
                         default:
                             HandleError(new Exception($"Unwanted message received: {decryptedRequestMessage}"));
                             break;
@@ -147,6 +144,7 @@ class ServerUDP
             SendEnd();
         }
     }
+
     private void HandleConnection(Message decryptedmessage)
     {
         try
@@ -166,7 +164,9 @@ class ServerUDP
                         HandleError(new Exception("Invalid threshold value"));
                     }
                     break;
-
+                case MessageType.Error:
+                    HandleError(new Exception(decryptedmessage.Content), false);
+                    break;
                 default:
                     HandleError(new Exception("Invalid message type"));
                     break;
@@ -328,16 +328,28 @@ class ServerUDP
     }
 
     //TODO: [Handle Errors]
-    private void HandleError(Exception error)
+    private void HandleError(Exception error, bool sendError = true)
     {
         Console.WriteLine("Handle Error called");
         Console.WriteLine("Error: " + error.Message);
-        // Reset the server or perform any necessary cleanup here
-        // if (sock != null && sock.Connected)
-        // {
-        //     sock.Close();
-        // }
-        // start();
+        if (sendError){
+            try
+            {
+                Message errorMessage = new Message{
+                    Type = MessageType.Error,
+                    Content = error.Message
+                };
+                byte[] messageBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(errorMessage));
+                sock.SendTo(messageBytes, remoteEP);
+            }
+            catch
+            {
+                Console.WriteLine("Sending error faulted");
+            }
+        }
+
+        sock.ReceiveTimeout = 0;
+        RetrieveConnection();
     }
 
     //Send the end message and reset all the timeouts, also restart the connection on RetrieveConnection
@@ -350,7 +362,8 @@ class ServerUDP
         try{
             sock.SendTo(messageBytes, remoteEP);
             got_Connection = false;
-        }catch(SocketException ex){
+        }
+        catch(SocketException ex){
             HandleError(ex);
         }
         sock.ReceiveTimeout = 0;

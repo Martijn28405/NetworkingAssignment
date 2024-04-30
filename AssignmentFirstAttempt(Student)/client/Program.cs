@@ -77,28 +77,25 @@ class ClientUDP
                     case MessageType.Data:
                         if (msg.Content != null)
                         {
-                            Console.WriteLine(msg.Content.Split(" ").Length);
                             RecieveData(msg.Content);
                         }
+                        break;
+                    
+                    case MessageType.Error:
+                        Console.WriteLine("Error message received\n");
+                        HandleError(new Exception(msg.Content), false);
                         break;
 
                     case MessageType.End:
                         HandleEnd();
                         break;
+                    
                 }
                 
             }
-            catch (SocketException e)
+            catch (SocketException ex)
             {
-                if (e.SocketErrorCode == SocketError.TimedOut)
-                {
-                    HandleError();
-                    break;
-                }
-                else
-                {
-                    throw;
-                }
+                HandleError(ex);
             }
         }
     }
@@ -117,9 +114,9 @@ class ClientUDP
             s.SendTo(data, ServerEndpoint);
             Console.WriteLine("RequestData message sent to the server");
         }
-        catch (SocketException)
+        catch (SocketException ex)
         {
-            HandleError();
+            HandleError(ex);
         }
     }
 
@@ -153,10 +150,10 @@ class ClientUDP
         byte[] msgBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(ackMessage));
         try{
             s.SendTo(msgBytes, ServerEndpoint);
-            Console.WriteLine("Ack message sent to the server");
+            Console.WriteLine("Ack message sent to the server\n");
         }
-        catch(SocketException){
-            HandleError();
+        catch(SocketException ex){
+            HandleError(ex);
         }
     }
 
@@ -166,16 +163,23 @@ class ClientUDP
         Console.WriteLine("End message received");
         // Perform any necessary cleanup or finalization here
         // For example, close the socket or release any resources
-        if (s != null && s.Connected)
+        if (s != null)
         {   
             Console.WriteLine("Closing socket");
             s.Close();
         }
         //Making the output file
-        Console.WriteLine("Making output.txt");
-        foreach (var data in recievedData)
+        try
         {
-            File.AppendAllText("output.txt", data.Value);
+            Console.WriteLine("Making output.txt");
+            foreach (var chunk in recievedData)
+            {
+                File.AppendAllText("output.txt", chunk.Value);
+            }
+        }
+        catch(Exception ex)
+        {
+            HandleError(ex);
         }
         // Terminate the application
         Console.WriteLine("Terminating client...");
@@ -184,8 +188,33 @@ class ClientUDP
 
 
     //TODO: [Handle Errors]
-    private void HandleError()
+    private void HandleError(Exception exception, bool sendError = true)
     {
+        Console.WriteLine("Handle Error called");
+        Console.WriteLine("Error: " + exception.Message);
+        if (sendError){
+            Console.WriteLine("Sending error message...");
+            try
+            {
+                Console.WriteLine("Sending error message...");
+                Message errorMessage = new Message{
+                    Type = MessageType.Error,
+                    Content = exception.Message
+                };
+                byte[] messageBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(errorMessage));
+                s.SendTo(messageBytes, ServerEndpoint);
+            }
+            catch
+            {
+                Console.WriteLine("Sending error message faulted");
+            }
+        }
+        if (s != null)
+        {
+            Console.WriteLine("Closing socket");
+            s.Close();
+        }
+        Console.WriteLine("Terminating client...");
         Environment.Exit(1);
     }
 }
