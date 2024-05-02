@@ -1,0 +1,15 @@
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\bin\Debug\net6.0\server.exe
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\bin\Debug\net6.0\server.deps.json
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\bin\Debug\net6.0\server.runtimeconfig.json
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\bin\Debug\net6.0\server.dll
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\bin\Debug\net6.0\server.pdb
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\server.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\server.AssemblyInfoInputs.cache
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\server.AssemblyInfo.cs
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\server.csproj.CoreCompileInputs.cache
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\server.sourcelink.json
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\server.dll
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\refint\server.dll
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\server.pdb
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\server.genruntimeconfig.cache
+C:\Users\Karsten_Keemink\Desktop\HSR_JAAR_2\ANALYSE\NetworkingAssignment\AssignmentFirstAttempt(Student)\server\obj\Debug\net6.0\ref\server.dll

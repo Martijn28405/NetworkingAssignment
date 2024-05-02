@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "8Ts4cAtbW5/hdVytDBKaU6Y8DZkDFAzMOz+F4jWWXRpEqYnO0CyvLMMbDtq2GDd1XsEe3o4S9Kvn2iLHT16M9w==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Karsten_Keemink\\Desktop\\HSR_JAAR_2\\ANALYSE\\NetworkingAssignment\\AssignmentFirstAttempt(Student)\\server\\server.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Karsten_Keemink\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.27\\microsoft.netcore.app.ref.6.0.27.nupkg.sha512",
+    "C:\\Users\\Karsten_Keemink\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.27\\microsoft.windowsdesktop.app.ref.6.0.27.nupkg.sha512",
+    "C:\\Users\\Karsten_Keemink\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.27\\microsoft.aspnetcore.app.ref.6.0.27.nupkg.sha512",
+    "C:\\Users\\Karsten_Keemink\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.27\\microsoft.netcore.app.host.win-x64.6.0.27.nupkg.sha512"
+  ],
+  "logs": []
+}
