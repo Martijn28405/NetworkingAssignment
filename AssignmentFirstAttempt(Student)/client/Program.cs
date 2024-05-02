@@ -24,11 +24,11 @@ class ClientUDP
     public void start()
     {
         SendHelloMessage();
-        ReceiveMessage();
+        
     }
     //TODO: create all needed objects for your sockets ✓
     private Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-    private static byte[] buffer = new byte[66000];
+    private static byte[] buffer = new byte[1024];
     private static IPAddress ipAddress = NetworkInterface.GetAllNetworkInterfaces()
         .SelectMany(nic => nic.GetIPProperties().UnicastAddresses)
         .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ua.Address))
@@ -52,25 +52,33 @@ class ClientUDP
             Content = $"{threshold}"
         };
         byte[] bytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(Hello));
-        s.SendTo(bytes, ServerEndpoint);
+        Console.WriteLine($"Sending Hello message to: {ServerEndpoint}\n");
+        try{
+            s.SendTo(bytes, ServerEndpoint);
+            ReceiveMessage();
+        }
+        catch(SocketException ex) 
+        {
+            Console.WriteLine(ex.ErrorCode + ""+ ex.SocketErrorCode);
+            Console.WriteLine("Sending Hello message faulted");
+            HandleError(ex, false);
+        }
     }
 
     private void ReceiveMessage()
     {
-        while (true)
-        {
-            Console.WriteLine("Awaiting message...");
-            
-            try
+        s.ReceiveTimeout = 5000;
+        try{
+            while (true)
             {
-                s.ReceiveTimeout = 5000;
+                Console.WriteLine("Awaiting message...");
                 int recv = s.ReceiveFrom(buffer, ref remoteEP);
                 string message = Encoding.ASCII.GetString(buffer, 0, recv);
                 Message msg = JsonSerializer.Deserialize<Message>(message)!;
                 switch (msg.Type)
                 {
                     case MessageType.Welcome:
-                        Console.WriteLine("Welcome message received\nSending RequestData message\n");
+                        Console.WriteLine("Welcome message received\n");
                         SendRequestData();
                         break;
 
@@ -78,6 +86,8 @@ class ClientUDP
                         if (msg.Content != null)
                         {
                             RecieveData(msg.Content);
+                        }else{
+                            HandleError(new Exception("Data message content is null"));
                         }
                         break;
                     
@@ -90,13 +100,15 @@ class ClientUDP
                         HandleEnd();
                         break;
                     
+                    default:
+                        HandleError(new Exception($"Unknown message type: {msg.Type} with content:\n{msg.Content}"), false);
+                        break;
                 }
-                
             }
-            catch (SocketException ex)
-            {
-                HandleError(ex);
-            }
+        }catch(SocketException ex) when (ex.SocketErrorCode == SocketError.TimedOut || ex.SocketErrorCode == SocketError.MessageSize) {
+            
+            Console.WriteLine("Socket timed out");
+            HandleError(ex, false); 
         }
     }
 
@@ -109,37 +121,44 @@ class ClientUDP
             Content = "hamlet.txt"
         };
         byte[] data = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(DataRequest));
+        Console.WriteLine("Sending RequestData message\n");
         try
         {
             s.SendTo(data, ServerEndpoint);
-            Console.WriteLine("RequestData message sent to the server");
         }
         catch (SocketException ex)
         {
+            Console.WriteLine("Sending RequestData message faulted\n");
             HandleError(ex);
         }
     }
-
+    //int count = 0;   //count for testing a missing ack and server long timeout
     //TODO: [Receive Data]
-    private void RecieveData(string messageContent){        
+    private void RecieveData(string messageContent){      
         try
         {
+            
             string messageID = messageContent.Substring(0, 4);
             string messageData = messageContent.Substring(4);
-            Console.WriteLine($"Data message received with Id: {messageID}");
+            Console.WriteLine($"\nData message received with Id: {messageID}");
             if (messageID == "0001")
             {
-                File.Delete("output.txt");
+                File.Delete("hamlet.txt");
             }
-            recievedData[messageID] = messageData;
-            SendAck(messageID);
+            // if(count < 1 && messageID == "0245"){ //at first run not sending ack back //also test if nothing is send in 5 secs
+            //     count++;
+            //     count--;
+            //     return;
+            // }
+            // else{
+                recievedData[messageID] = messageData;
+                SendAck(messageID);
+            // }
         }
-        catch
+        catch(Exception ex)
         {
-            Console.WriteLine("Error: message is empty or faulty");
-            //handleerror
+            HandleError(ex);
         }
-
     }
 
     private void SendAck(string messageid){
@@ -153,6 +172,7 @@ class ClientUDP
             Console.WriteLine("Ack message sent to the server\n");
         }
         catch(SocketException ex){
+            Console.WriteLine("Ack message sent faulted\n");
             HandleError(ex);
         }
     }
@@ -171,14 +191,15 @@ class ClientUDP
         //Making the output file
         try
         {
-            Console.WriteLine("Making output.txt");
+            Console.WriteLine("Making hamlet.txt");
             foreach (var chunk in recievedData)
             {
-                File.AppendAllText("output.txt", chunk.Value);
+                File.AppendAllText("hamlet.txt", chunk.Value);
             }
         }
         catch(Exception ex)
         {
+            Console.WriteLine("Making output.txt faulted\n");
             HandleError(ex);
         }
         // Terminate the application
@@ -190,13 +211,12 @@ class ClientUDP
     //TODO: [Handle Errors]
     private void HandleError(Exception exception, bool sendError = true)
     {
-        Console.WriteLine("Handle Error called");
-        Console.WriteLine("Error: " + exception.Message);
+        Console.WriteLine($"Handle Error called");
+        Console.WriteLine($"Error: {exception.Message}\n");
         if (sendError){
             Console.WriteLine("Sending error message...");
             try
             {
-                Console.WriteLine("Sending error message...");
                 Message errorMessage = new Message{
                     Type = MessageType.Error,
                     Content = exception.Message
