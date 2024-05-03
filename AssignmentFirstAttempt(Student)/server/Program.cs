@@ -33,6 +33,9 @@ class ServerUDP
         .FirstOrDefault() 
         ?? 
         IPAddress.Parse("127.0.0.1");
+
+    // if the ip doesnt work somehow do:
+    //private static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
     private static IPEndPoint serverIpEndPoint = new IPEndPoint(ipAddress, 32000);
     private EndPoint remoteEP = new IPEndPoint(ipAddress, 32000);
     private Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -43,10 +46,10 @@ class ServerUDP
 
     //Vars for slow start
     private int Threshold = 1;
-    private int chunksSize = 10;
+    private int chunksSize = 500;
     private string filePath = "";
     private string[] fileLines = new string[0];
-    private Dictionary<string, string[]>? dataChunks;
+    private Dictionary<string, string>? dataChunks;
     //------------------------------------------------
 
 
@@ -59,16 +62,7 @@ class ServerUDP
     //this method binds the socket and lets the server listen
     public void start()
     {
-        try{
-            sock.Bind(serverIpEndPoint);
-        }catch(SocketException ex) when (ex.SocketErrorCode == SocketError.AddressNotAvailable){
-            Console.WriteLine($"Error: {ex.Message}\nswitching to manual ip: 127.0.0.1");
-            ipAddress = IPAddress.Parse("127.0.0.1");
-            serverIpEndPoint = new IPEndPoint(ipAddress, 32000);
-            remoteEP = new IPEndPoint(ipAddress, 32000);
-            sock.Bind(serverIpEndPoint);
-        }
-        
+        sock.Bind(serverIpEndPoint);
         while(true){
             try
             {
@@ -117,7 +111,6 @@ class ServerUDP
                     Message decryptedMessage = JsonSerializer.Deserialize<Message>(message)!;
                     
 
-                    
                     switch (decryptedMessage.Type)
                     {
                         case MessageType.Hello:
@@ -138,6 +131,7 @@ class ServerUDP
                                 lastReceivedTime = DateTime.Now;
                                 break;
                             }
+                            lastReceivedTime = DateTime.Now;
                             break;
 
                         case MessageType.RequestData:
@@ -209,20 +203,22 @@ class ServerUDP
     {
         Console.WriteLine($"Data requested: {messageContent}");
         filePath = messageContent;
-        fileLines = File.ReadAllText(filePath).Split('\n');
+        
         // Divide the file into chunks of size chunksSize
-        dataChunks = DevideData(fileLines, chunksSize);
+        dataChunks = DevideData(filePath, chunksSize);
         SendData();
     }
 
-    private Dictionary<string, string[]> DevideData(string[] filelines, int chunksize, string startingDataID = "0001")
+    private Dictionary<string, string> DevideData(string filepath, int chunksize, string startingDataID = "0001")
     {
-        var dataDict = new Dictionary<string, string[]>();
+        var dataDict = new Dictionary<string, string>();
         string dataID = startingDataID;
-        for (int i = 0; i <= fileLines.Length; i += chunksize)
+        string fileContent = File.ReadAllText(filepath);
+
+        for (int i = 0; i <= fileContent.Length; i += chunksize)
         {
-            int end = Math.Min(i + chunksize, filelines.Length);
-            string[] chunk = filelines.Skip(i).Take(end - i).ToArray();
+            int end = Math.Min(i + chunksize, fileContent.Length);
+            string chunk = fileContent.Substring(i, end - i);
             dataDict.Add(dataID, chunk);
             int nextDataID = int.Parse(dataID) + 1;
             dataID = nextDataID.ToString("D4");
@@ -240,7 +236,7 @@ class ServerUDP
         while (dataChunks != null && dataChunks.Count > 0)
         {
 
-            List<KeyValuePair<string, string[]>> chunksList = dataChunks.ToList();
+            List<KeyValuePair<string, string>> chunksList = dataChunks.ToList();
             for (int i = 0; i < windowSize && chunksList.Count > 0; i++)
             {   
                 var chunk = chunksList.First();
@@ -248,7 +244,7 @@ class ServerUDP
                 Message dataMessage = new Message
                 {
                     Type = MessageType.Data,
-                    Content = chunk.Key + "" + string.Join("", chunk.Value)
+                    Content = chunk.Key + "" + chunk.Value
                 }; 
                 byte[] messageBytes = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(dataMessage));
 
@@ -293,7 +289,7 @@ class ServerUDP
                 receivedAcks.Clear();
                 windowSize = 1;
             }
-            
+
         }
         Console.WriteLine("Sent all data!");
         Console.WriteLine("Received all acknowledgements");

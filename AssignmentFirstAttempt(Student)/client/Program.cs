@@ -24,15 +24,19 @@ class ClientUDP
     private Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     private static byte[] buffer = new byte[1024];
     private static IPAddress ipAddress = NetworkInterface.GetAllNetworkInterfaces()
+        .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
         .SelectMany(nic => nic.GetIPProperties().UnicastAddresses)
         .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ua.Address))
         .Select(ua => ua.Address)
         .FirstOrDefault() ?? IPAddress.Parse("127.0.0.1");
+        
+    // if the ip doesnt work somehow do:
+    //private static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
     private static IPEndPoint ServerEndpoint = new IPEndPoint(ipAddress, 32000);
     private static EndPoint remoteEP = new IPEndPoint(ipAddress, 32000);
 
     private int threshold = 20;
-
+    private string fileName = "hamlet.txt";
 
     // recieved messages
     private SortedDictionary<string, string> recievedData = new SortedDictionary<string, string>();
@@ -44,14 +48,9 @@ class ClientUDP
         try{
             SendHelloMessage();
         }catch(SocketException ex){
-            Console.WriteLine($"Error: {ex.Message}\n switching to manual ip: 127.0.0.1\n");
-            ipAddress = IPAddress.Parse("127.0.0.1");
-            ServerEndpoint = new IPEndPoint(ipAddress, 32000);
-            remoteEP = new IPEndPoint(ipAddress, 32000);
-
-            SendHelloMessage();
+            Console.WriteLine($"Error: {ex.Message}\n\n");
+            HandleError(ex, false);
         }
-        
     }
 
     //TODO: [Send Hello message] ✓
@@ -129,7 +128,7 @@ class ClientUDP
         Message DataRequest = new Message
         {
             Type = MessageType.RequestData,
-            Content = "hamlet.txt"
+            Content = fileName
         };
         byte[] data = Encoding.ASCII.GetBytes(JsonSerializer.Serialize(DataRequest));
         Console.WriteLine("Sending RequestData message\n");
@@ -143,7 +142,7 @@ class ClientUDP
             HandleError(ex);
         }
     }
-    //int count = 0;   //count for testing a missing ack and server long timeout
+    // int count = 0;   //count for testing a missing ack and server long timeout
     //TODO: [Receive Data]
     private void RecieveData(string messageContent){      
         try
@@ -154,7 +153,7 @@ class ClientUDP
             Console.WriteLine($"\nData message received with Id: {messageID}");
             if (messageID == "0001")
             {
-                File.Delete("hamlet.txt");
+                File.Delete(fileName);
             }
             // if(count < 1 && messageID == "0245"){ //at first run not sending ack back //also test if nothing is send in 5 secs
             //     count++;
@@ -202,11 +201,9 @@ class ClientUDP
         //Making the output file
         try
         {
-            Console.WriteLine("Making hamlet.txt");
-            foreach (var chunk in recievedData)
-            {
-                File.AppendAllText("hamlet.txt", chunk.Value);
-            }
+            Console.WriteLine($"Making {fileName}");
+            string fullFileData = string.Join("", recievedData.Values);
+            File.WriteAllText(fileName, fullFileData);
         }
         catch(Exception ex)
         {
@@ -222,8 +219,7 @@ class ClientUDP
     //TODO: [Handle Errors]
     private void HandleError(Exception exception, bool sendError = true)
     {
-        Console.WriteLine($"Handle Error called");
-        Console.WriteLine($"Error: {exception.Message}\n");
+        Console.WriteLine($"\nError: {exception.Message}\n");
         if (sendError){
             Console.WriteLine("Sending error message...");
             try
