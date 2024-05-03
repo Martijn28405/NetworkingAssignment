@@ -61,7 +61,7 @@ class ServerUDP
     {
         try{
             sock.Bind(serverIpEndPoint);
-        }catch(SocketException ex){
+        }catch(SocketException ex) when (ex.SocketErrorCode == SocketError.AddressNotAvailable){
             Console.WriteLine($"Error: {ex.Message}\nswitching to manual ip: 127.0.0.1");
             ipAddress = IPAddress.Parse("127.0.0.1");
             serverIpEndPoint = new IPEndPoint(ipAddress, 32000);

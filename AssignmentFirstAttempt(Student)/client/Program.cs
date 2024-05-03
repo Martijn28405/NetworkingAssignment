@@ -42,9 +42,6 @@ class ClientUDP
     public void start()
     {
         try{
-            byte[] testMessage = Encoding.ASCII.GetBytes("Test");
-            s.SendTo(testMessage, ServerEndpoint);
-
             SendHelloMessage();
         }catch(SocketException ex){
             Console.WriteLine($"Error: {ex.Message}\n switching to manual ip: 127.0.0.1\n");
