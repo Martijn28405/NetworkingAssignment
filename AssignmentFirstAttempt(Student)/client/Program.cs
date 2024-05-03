@@ -19,13 +19,7 @@ class Program
 class ClientUDP
 {
 
-    //TODO: implement all necessary logic to create sockets and handle incoming messages
-    // Do not put all the logic into one method. Create multiple methods to handle different tasks.
-    public void start()
-    {
-        SendHelloMessage();
-        
-    }
+
     //TODO: create all needed objects for your sockets ✓
     private Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     private static byte[] buffer = new byte[1024];
@@ -33,7 +27,7 @@ class ClientUDP
         .SelectMany(nic => nic.GetIPProperties().UnicastAddresses)
         .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ua.Address))
         .Select(ua => ua.Address)
-        .FirstOrDefault() ?? IPAddress.None;
+        .FirstOrDefault() ?? IPAddress.Parse("127.0.0.1");
     private static IPEndPoint ServerEndpoint = new IPEndPoint(ipAddress, 32000);
     private static EndPoint remoteEP = new IPEndPoint(ipAddress, 32000);
 
@@ -42,6 +36,26 @@ class ClientUDP
 
     // recieved messages
     private SortedDictionary<string, string> recievedData = new SortedDictionary<string, string>();
+
+    //TODO: implement all necessary logic to create sockets and handle incoming messages
+    // Do not put all the logic into one method. Create multiple methods to handle different tasks.
+    public void start()
+    {
+        try{
+            byte[] testMessage = Encoding.ASCII.GetBytes("Test");
+            s.SendTo(testMessage, ServerEndpoint);
+
+            SendHelloMessage();
+        }catch(SocketException ex){
+            Console.WriteLine($"Error: {ex.Message}\n switching to manual ip: 127.0.0.1\n");
+            ipAddress = IPAddress.Parse("127.0.0.1");
+            ServerEndpoint = new IPEndPoint(ipAddress, 32000);
+            remoteEP = new IPEndPoint(ipAddress, 32000);
+
+            SendHelloMessage();
+        }
+        
+    }
 
     //TODO: [Send Hello message] ✓
     private void SendHelloMessage()

@@ -26,10 +26,13 @@ class ServerUDP
     //this also creates the needed file systems and sets the IP adress with the port
     private byte[] buffer = new byte[1024];
     private static IPAddress ipAddress = NetworkInterface.GetAllNetworkInterfaces()
+        .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
         .SelectMany(nic => nic.GetIPProperties().UnicastAddresses)
         .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ua.Address))
         .Select(ua => ua.Address)
-        .FirstOrDefault() ?? IPAddress.None;
+        .FirstOrDefault() 
+        ?? 
+        IPAddress.Parse("127.0.0.1");
     private static IPEndPoint serverIpEndPoint = new IPEndPoint(ipAddress, 32000);
     private EndPoint remoteEP = new IPEndPoint(ipAddress, 32000);
     private Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -56,7 +59,16 @@ class ServerUDP
     //this method binds the socket and lets the server listen
     public void start()
     {
-        sock.Bind(serverIpEndPoint);
+        try{
+            sock.Bind(serverIpEndPoint);
+        }catch(SocketException ex){
+            Console.WriteLine($"Error: {ex.Message}\nswitching to manual ip: 127.0.0.1");
+            ipAddress = IPAddress.Parse("127.0.0.1");
+            serverIpEndPoint = new IPEndPoint(ipAddress, 32000);
+            remoteEP = new IPEndPoint(ipAddress, 32000);
+            sock.Bind(serverIpEndPoint);
+        }
+        
         while(true){
             try
             {
